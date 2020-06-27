@@ -50,4 +50,29 @@ app.post('/api/users', (req, res) => {
     res.send(newUser)
 })
 
+// delete user by id    
+app.delete('/api/users/:id', (req, res) => {
+    let id = req.params.id
+
+    let data = fs.readFileSync('users.json', 'utf-8')
+    let users = JSON.parse(data)
+
+    // find id for delete user 
+    let deleteUser = users.find(user => user.id == id)
+
+    if(!deleteUser) {
+        return res.sendStatus(404)
+    }
+
+    // get new list users 
+    data = users.filter(user => user.id != deleteUser.id)
+
+    data = JSON.stringify(data, null, 2)
+
+    fs.writeFileSync('users.json', data)
+    
+    // send deleted user 
+    res.send(deleteUser)
+})
+
 app.listen(3000)
