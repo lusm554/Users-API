@@ -4,6 +4,8 @@ const bodyParser = require('body-parser')
 
 const app = express()
 
+app.use(express.static(__dirname + '/public'))
+
 app.use(bodyParser.json())
 
 // get list of data
@@ -29,8 +31,7 @@ app.get('/api/users/:id', (req, res) => {
 app.post('/api/users', (req, res) => {
     if(!req.body) res.sendStatus(400)
 
-    let userName = req.body.userName 
-    let userAge = req.body.userAge
+    let {userName, userAge} = req.body
 
     let data = fs.readFileSync('users.json', 'utf-8')
     let users = JSON.parse(data)
@@ -75,4 +76,30 @@ app.delete('/api/users/:id', (req, res) => {
     res.send(deleteUser)
 })
 
-app.listen(3000)
+app.put('/api/users', (req, res) => {
+    if(!req.body) {
+        return res.sendStatus(400)
+    }
+
+    let {id, userName, userAge} = req.body
+
+    let data = fs.readFileSync("users.json", "utf8")
+    let users = JSON.parse(data)
+    let user = users(user => user.id == id)
+
+    if(!user) {
+        return res.status(404).send(user)
+    }
+
+    // change data of user
+    user.age = userAge
+    user.name = userName
+
+    data = JSON.stringify(users)
+    fs.writeFileSync("users.json", data)
+    res.send(user)
+})
+
+app.listen(3000, () => {
+    console.log(`server listen on http://localhost:3000/api/users`)
+})
