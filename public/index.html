@@ -107,6 +107,11 @@
             addUsersToList(USERS)
         })();
 
+        async function uploadUSERS() {
+            await fetch('/api/users').then((res) => res.json()).then(json => USERS = json)
+
+            addUsersToList(USERS)
+        }
 
         save.addEventListener('click', async (event) => {
             if(!isUserChange) {
@@ -119,6 +124,10 @@
 
         // make a PUT request
         async function changeUser() {
+            await uploadUSERS()
+
+            console.log(USERS, currentId)
+
             let {name, age} = USERS[currentId]
             let data = {id: currentId}
 
