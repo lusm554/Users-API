@@ -92,18 +92,65 @@
               <th>Age</th>
               <th>Settings</th>
             </tr>
-            <tr>
-                <td>${listUsers.id}</td>
-                <td>${listUsers.name}</td>
-                <td>${listUsers.age}</td>
-            </tr>
           </table>
     </div>
 
     <script>
+        let isUserChange = false;
+        let USERS;
+        let currentId;
+
+        // make GET request
+        (async() => {
+            await fetch('/api/users').then((res) => res.json()).then(json => USERS = json)
+
+            addUsersToList(USERS)
+        })();
+
+
         save.addEventListener('click', async (event) => {
+            if(!isUserChange) {
+                await saveNewUser()
+            }
+            else {
+                await changeUser()
+            }
+        });
+
+        // make a PUT request
+        async function changeUser() {
+            let {name, age} = USERS[currentId]
+            let data = {id: currentId}
+
+            const currentName = document.getElementById('input-name').value
+            const currentAge = document.getElementById('input-age').value
+            
+            if(currentName != name) {
+                data.userName = currentName
+            }
+
+            if(currentAge != age) {
+                data.userAge = currentAge
+            }
+
+            await fetch('/api/users', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            }).then(res => res.json()).then(user => updateUserList(user))
+
+            isUserChange = false
+        }
+
+        // make a POST request
+        async function saveNewUser() {
             const name = document.getElementById('input-name').value
             const age = document.getElementById('input-age').value
+
+            if(name==''||age=='') return;
+
             let data = {userName: name, userAge: age}
             let newUser;
 
@@ -122,45 +169,96 @@
             }).then(json => newUser = json)
 
             addUsersToList(newUser);
-        });
+        }
 
+        // clear inputs 
         clear.addEventListener('click', (event) => {
             document.getElementById('input-age').value = null
             document.getElementById('input-name').value = null
         });
 
-        (async() => {
-            let list = await getUsers();
+        // update user list
+        function updateUserList(updatedUsers) {
+            let header = `<tr>
+              <th>Id</th>
+              <th>Name</th>
+              <th>Age</th>
+              <th>Settings</th>
+            </tr>`;
 
-            addUsersToList(list)
-        })();
+            users.innerHTML = header
 
-        function addUsersToList(listUsers) {
-            if(!Array.isArray(listUsers)) {
-
-                users.insertAdjacentHTML('beforeend',`<tr>
-                    <td>${listUsers.id}</td>
-                    <td>${listUsers.name}</td>
-                    <td>${listUsers.age}</td>
-                </tr>`)
-
-            }
-
-            for(let user of listUsers) {
-                users.insertAdjacentHTML('beforeend',`<tr>
+            for(let user of updatedUsers) {
+                users.insertAdjacentHTML('beforeend',`<tr id="tr-${user.id}">
                     <td>${user.id}</td>
                     <td>${user.name}</td>
                     <td>${user.age}</td>
+                    <td>
+                        <button id="btn-delete-${user.id}" onClick="clickHandler(event)">delete</button>
+                        <button id="btn-change-${user.id}" onClick="clickHandler(event)">change</button>
+                    </td>
                 </tr>`)
             }
         }
 
-        async function getUsers() {
-            let listUsers;
+        // add new user to list
+        function addUsersToList(listUsers) {
+            if(!Array.isArray(listUsers)) {
 
-            await fetch('/api/users').then((res) => res.json()).then(json => listUsers = json)
+                users.insertAdjacentHTML('beforeend',`<tr id="tr-${listUsers.id}">
+                    <td>${listUsers.id}</td>
+                    <td>${listUsers.name}</td>
+                    <td>${listUsers.age}</td>
+                    <td>
+                        <button id="btn-delete-${listUsers.id}" onClick="clickHandler(event)">delete</button>
+                        <button id="btn-change-${listUsers.id}" onClick="clickHandler(event)">change</button>
+                    </td>
+                </tr>`)
+                return;
+            }
 
-            return listUsers;
+            for(let user of listUsers) {
+                users.insertAdjacentHTML('beforeend',`<tr id="tr-${user.id}">
+                    <td>${user.id}</td>
+                    <td>${user.name}</td>
+                    <td>${user.age}</td>
+                    <td>
+                        <button id="btn-delete-${user.id}" onClick="clickHandler(event)">delete</button>
+                        <button id="btn-change-${user.id}" onClick="clickHandler(event)">change</button>
+                    </td>
+                </tr>`)
+            }
+        }   
+
+        // click handler
+        function clickHandler(event) {
+            let target = event.target
+            let id = currentId = target.id.slice(-1);
+
+            if(target.id.includes('btn-change')) {
+                handleChange(id)
+            }
+            else if (target.id.includes('btn-delete')) {
+                handleDelete( document.getElementById(`tr-${id}`) )
+            }
+        }
+
+        // list change handler
+        async function handleChange(id) {
+            await fetch(`/api/users/`).then(res => res.json()).then(users => {
+                
+                let user = users.find(elem => elem.id == id)
+                
+                document.getElementById('input-age').value = user.age
+                document.getElementById('input-name').value = user.name
+
+                isUserChange = true;
+            })
+        }   
+
+        // delete item handler
+        function handleDelete(target) {
+
         }
     </script>
 </body> 

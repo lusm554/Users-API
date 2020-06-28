@@ -95,9 +95,12 @@ app.put('/api/users', (req, res) => {
     user.age = userAge
     user.name = userName
 
-    data = JSON.stringify(users)
+    data = JSON.stringify(users, null, 2)
     fs.writeFileSync("users.json", data)
-    res.send(user)
+
+    let newUsers = fs.readFileSync('users.json', 'utf-8')
+
+    res.send(newUsers)
 })
 
 app.listen(3000, () => {
