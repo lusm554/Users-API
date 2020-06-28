@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@500&display=swap" rel="stylesheet">
+    <title>Funny API</title>
+</head>
+<body>
+    <style>
+        body {
+            font-family: 'Heebo', sans-serif;
+        }
+
+        .buttons {
+            padding: 10px;
+        }
+
+        button {
+            margin: 10px;
+        }
+
+        .alert {
+            padding: 20px;
+            background-color: #6EBD6F;
+            color: white;
+        }
+
+        .closebtn {
+            margin-left: 15px;
+            color: white;
+            font-weight: bold;
+            float: right;
+            font-size: 22px;
+            line-height: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .closebtn:hover {
+            color: black;
+        }
+
+        #users {
+            font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        #users td, #users th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #users tr:nth-child(even){background-color: #f2f2f2;}
+
+        #users tr:hover {background-color: #ddd;}
+
+        #users th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+    <div class="alert" id="alert" hidden>
+        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span> 
+        <strong>Sucess!</strong> Data sent.
+    </div>
+
+    <form action="">
+        <label for="input-name">Name:</label><br>
+        <input type="text" id="input-name">
+    </form><br>
+
+    <form action="">
+        <label for="input-age">Age:</label><br>
+        <input type="number" id="input-age">
+    </form>
+
+    
+    <div class="buttons">
+        <button id="save">Save</button>
+        <button id="clear">Clear</button>
+    </div>
+
+    <div id="list-of-users">
+        <table id="users">
+            <tr>
+              <th>Id</th>
+              <th>Name</th>
+              <th>Age</th>
+              <th>Settings</th>
+            </tr>
+            <tr>
+                <td>${listUsers.id}</td>
+                <td>${listUsers.name}</td>
+                <td>${listUsers.age}</td>
+            </tr>
+          </table>
+    </div>
+
+    <script>
+        save.addEventListener('click', async (event) => {
+            const name = document.getElementById('input-name').value
+            const age = document.getElementById('input-age').value
+            let data = {userName: name, userAge: age}
+            let newUser;
+
+            await fetch('/api/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            }).then(res => {
+                if(res.status == 200) {
+                    document.getElementById('alert').hidden = false
+                }
+
+                return res.json()
+            }).then(json => newUser = json)
+
+            addUsersToList(newUser);
+        });
+
+        clear.addEventListener('click', (event) => {
+            document.getElementById('input-age').value = null
+            document.getElementById('input-name').value = null
+        });
+
+        (async() => {
+            let list = await getUsers();
+
+            addUsersToList(list)
+        })();
+
+        function addUsersToList(listUsers) {
+            if(!Array.isArray(listUsers)) {
+
+                users.insertAdjacentHTML('beforeend',`<tr>
+                    <td>${listUsers.id}</td>
+                    <td>${listUsers.name}</td>
+                    <td>${listUsers.age}</td>
+                </tr>`)
+
+            }
+
+            for(let user of listUsers) {
+                users.insertAdjacentHTML('beforeend',`<tr>
+                    <td>${user.id}</td>
+                    <td>${user.name}</td>
+                    <td>${user.age}</td>
+                </tr>`)
+            }
+        }
+
+        async function getUsers() {
+            let listUsers;
+
+            await fetch('/api/users').then((res) => res.json()).then(json => listUsers = json)
+
+            return listUsers;
+        }
+    </script>
+</body> 
+</html>

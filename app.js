@@ -85,7 +85,7 @@ app.put('/api/users', (req, res) => {
 
     let data = fs.readFileSync("users.json", "utf8")
     let users = JSON.parse(data)
-    let user = users(user => user.id == id)
+    let user = users.find(user => user.id == id)
 
     if(!user) {
         return res.status(404).send(user)
