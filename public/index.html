@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@500&display=swap" rel="stylesheet">
+    <script src="./modules/index.js"></script>
     <title>Funny API</title>
 </head>
 <body>
@@ -40,22 +41,22 @@
             color: black;
         }
 
-        #users {
+        .users {
             font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
             border-collapse: collapse;
             width: 100%;
         }
 
-        #users td, #users th {
+        .users td, .users th {
             border: 1px solid #ddd;
             padding: 8px;
         }
 
-        #users tr:nth-child(even){background-color: #f2f2f2;}
+        .users tr:nth-child(even){background-color: #f2f2f2;}
 
-        #users tr:hover {background-color: #ddd;}
+        .users tr:hover {background-color: #ddd;}
 
-        #users th {
+        .users th {
             padding-top: 12px;
             padding-bottom: 12px;
             text-align: left;
@@ -69,23 +70,23 @@
     </div>
 
     <form action="">
-        <label for="input-name">Name:</label><br>
-        <input type="text" id="input-name">
+        <label for="inputName">Name:</label><br>
+        <input type="text" id="inputName">
     </form><br>
 
     <form action="">
-        <label for="input-age">Age:</label><br>
-        <input type="number" id="input-age">
+        <label for="inputAge">Age:</label><br>
+        <input type="number" id="inputAge">
     </form>
 
     
     <div class="buttons">
-        <button id="save">Save</button>
+        <button id="ADD">Add</button>
         <button id="clear">Clear</button>
     </div>
 
     <div id="list-of-users">
-        <table id="users">
+        <table id="listUsers" class="users">
             <tr>
               <th>Id</th>
               <th>Name</th>
@@ -96,179 +97,24 @@
     </div>
 
     <script>
-        let isUserChange = false;
-        let USERS;
-        let currentId;
 
-        // make GET request
-        (async() => {
-            await fetch('/api/users').then((res) => res.json()).then(json => USERS = json)
+        // add user to list
+        ADD.addEventListener('click', async (event) => {
+            let data = {userName: inputName.value, userAge: inputAge.value}
 
-            addUsersToList(USERS)
-        })();
-
-        async function uploadUSERS() {
-            await fetch('/api/users').then((res) => res.json()).then(json => USERS = json)
-
-            addUsersToList(USERS)
-        }
-
-        save.addEventListener('click', async (event) => {
-            if(!isUserChange) {
-                await saveNewUser()
-            }
-            else {
-                await changeUser()
-            }
+            await addUserToList(data);
         });
 
-        // make a PUT request
-        async function changeUser() {
-            await uploadUSERS()
 
-            console.log(USERS, currentId)
+        listUsers.addEventListener('click', async (event) => {
+            let target = event.target;
 
-            let {name, age} = USERS[currentId]
-            let data = {id: currentId}
+            if(!target.id.includes('btnDelete')) return;   
 
-            const currentName = document.getElementById('input-name').value
-            const currentAge = document.getElementById('input-age').value
-            
-            if(currentName != name) {
-                data.userName = currentName
-            }
+            let id = target.id.slice(-1);
 
-            if(currentAge != age) {
-                data.userAge = currentAge
-            }
-
-            await fetch('/api/users', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            }).then(res => res.json()).then(user => updateUserList(user))
-
-            isUserChange = false
-        }
-
-        // make a POST request
-        async function saveNewUser() {
-            const name = document.getElementById('input-name').value
-            const age = document.getElementById('input-age').value
-
-            if(name==''||age=='') return;
-
-            let data = {userName: name, userAge: age}
-            let newUser;
-
-            await fetch('/api/users', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            }).then(res => {
-                if(res.status == 200) {
-                    document.getElementById('alert').hidden = false
-                }
-
-                return res.json()
-            }).then(json => newUser = json)
-
-            addUsersToList(newUser);
-        }
-
-        // clear inputs 
-        clear.addEventListener('click', (event) => {
-            document.getElementById('input-age').value = null
-            document.getElementById('input-name').value = null
-        });
-
-        // update user list
-        function updateUserList(updatedUsers) {
-            let header = `<tr>
-              <th>Id</th>
-              <th>Name</th>
-              <th>Age</th>
-              <th>Settings</th>
-            </tr>`;
-
-            users.innerHTML = header
-
-            for(let user of updatedUsers) {
-                users.insertAdjacentHTML('beforeend',`<tr id="tr-${user.id}">
-                    <td>${user.id}</td>
-                    <td>${user.name}</td>
-                    <td>${user.age}</td>
-                    <td>
-                        <button id="btn-delete-${user.id}" onClick="clickHandler(event)">delete</button>
-                        <button id="btn-change-${user.id}" onClick="clickHandler(event)">change</button>
-                    </td>
-                </tr>`)
-            }
-        }
-
-        // add new user to list
-        function addUsersToList(listUsers) {
-            if(!Array.isArray(listUsers)) {
-
-                users.insertAdjacentHTML('beforeend',`<tr id="tr-${listUsers.id}">
-                    <td>${listUsers.id}</td>
-                    <td>${listUsers.name}</td>
-                    <td>${listUsers.age}</td>
-                    <td>
-                        <button id="btn-delete-${listUsers.id}" onClick="clickHandler(event)">delete</button>
-                        <button id="btn-change-${listUsers.id}" onClick="clickHandler(event)">change</button>
-                    </td>
-                </tr>`)
-                return;
-            }
-
-            for(let user of listUsers) {
-                users.insertAdjacentHTML('beforeend',`<tr id="tr-${user.id}">
-                    <td>${user.id}</td>
-                    <td>${user.name}</td>
-                    <td>${user.age}</td>
-                    <td>
-                        <button id="btn-delete-${user.id}" onClick="clickHandler(event)">delete</button>
-                        <button id="btn-change-${user.id}" onClick="clickHandler(event)">change</button>
-                    </td>
-                </tr>`)
-            }
-        }   
-
-        // click handler
-        function clickHandler(event) {
-            let target = event.target
-            let id = currentId = target.id.slice(-1);
-
-            if(target.id.includes('btn-change')) {
-                handleChange(id)
-            }
-            else if (target.id.includes('btn-delete')) {
-                handleDelete( document.getElementById(`tr-${id}`) )
-            }
-        }
-
-        // list change handler
-        async function handleChange(id) {
-            await fetch(`/api/users/`).then(res => res.json()).then(users => {
-                
-                let user = users.find(elem => elem.id == id)
-                
-                document.getElementById('input-age').value = user.age
-                document.getElementById('input-name').value = user.name
-
-                isUserChange = true;
-            })
-        }   
-
-        // delete item handler
-        function handleDelete(target) {
-
-        }
+            await deleteUser(id);
+        })
     </script>
 </body> 
 </html>
