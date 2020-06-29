@@ -1,6 +1,5 @@
 'use strict';
 
-
 (async () => {
     let users = await getUsers();
 
@@ -56,11 +55,37 @@ async function updateUsersList() {
     await loadAllUsers(actualUsers);
 }
 
-
+// delete user from list
 async function deleteUser(id) {
     await fetch(`api/users/${id}`, {
         method: 'DELETE'
     });
 
+    await updateUsersList();
+}
+
+// make GET request 
+async function setInputs(id) {
+    let user;
+    currentId = id;
+
+    await fetch(`api/users/${id}`).then(res => res.json()).then(json => user = json);
+
+    inputAge.value = user.age;
+    inputName.value = user.name;
+}
+
+// change user 
+async function changeUser(data) {
+
+    await fetch('/api/users/', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+
+    toggleAdd = false;
     await updateUsersList();
 }

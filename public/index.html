@@ -97,24 +97,40 @@
     </div>
 
     <script>
+        let toggleAdd = false;
+        let currentId;
 
         // add user to list
         ADD.addEventListener('click', async (event) => {
-            let data = {userName: inputName.value, userAge: inputAge.value}
+            let data = {userName: inputName.value, userAge: inputAge.value, id: currentId}
+
+            if(toggleAdd) {
+                await changeUser(data);
+                return;
+            }
 
             await addUserToList(data);
         });
 
-
+        // change user or delete
         listUsers.addEventListener('click', async (event) => {
             let target = event.target;
 
-            if(!target.id.includes('btnDelete')) return;   
+            if( !target.id.includes('btnDelete') && !target.id.includes('btnChange') ) return;   
+
+            if( target.id.includes('btnChange') ) {
+                toggleAdd = true; 
+                await setInputs(target.id.slice(-1))
+
+                return;
+            }
 
             let id = target.id.slice(-1);
 
             await deleteUser(id);
         })
+
+        
     </script>
 </body> 
 </html>
