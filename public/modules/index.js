@@ -36,6 +36,8 @@ async function loadAllUsers(allUsers) {
 
 // load new user and update list of users
 async function addUserToList(user) {
+    if(user.userName == '' || user.userAge=='') return;
+
     await fetch('api/users', {
         method: 'POST',
         headers: {
@@ -88,4 +90,10 @@ async function changeUser(data) {
 
     toggleAdd = false;
     await updateUsersList();
+    clearInputs();
+}
+
+function clearInputs() {
+    inputAge.value = null;
+    inputName.value = null;
 }

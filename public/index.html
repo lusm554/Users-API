@@ -110,6 +110,7 @@
             }
 
             await addUserToList(data);
+            clearInputs();
         });
 
         // change user or delete
@@ -130,6 +131,9 @@
             await deleteUser(id);
         })
 
+        clear.addEventListener('click', (event) => {
+            clearInputs();
+        })
         
     </script>
 </body> 
