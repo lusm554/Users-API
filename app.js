@@ -104,5 +104,5 @@ app.put('/api/users', (req, res) => {
 })
 
 app.listen(3000, () => {
-    console.log(`server listen on http://localhost:3000/api/users`)
+    console.log(`server listen on http://localhost:3000/`)
 })
